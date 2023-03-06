@@ -18,17 +18,14 @@ namespace GBelenky.Producer
             ILogger logger = context.CreateReplaySafeLogger(nameof(Producer));
             
             int rps = Int32.Parse(Environment.GetEnvironmentVariable("RPS") ?? "1");
-            int delay = 1000 / rps;
-
-            logger.LogInformation($"Orchestrator will broadcast {rps} requests per second woth the delay of {delay} millicesonds.");
+        
+            logger.LogInformation($"Orchestrator will broadcast {rps} requests");
 
             var tasks = new Task[rps];
 
             for (int i = 0; i < rps; i++)
             {
                 tasks[i] = context.CallActivityAsync("BroadcastRequest", i.ToString());
-                DateTime nextStart = context.CurrentUtcDateTime.Add(TimeSpan.FromMilliseconds(delay));
-                await context.CreateTimer(nextStart, CancellationToken.None);
             }
             await Task.WhenAll(tasks);
             return;
